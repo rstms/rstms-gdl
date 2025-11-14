@@ -1,0 +1,7 @@
+rstms-gdl
+rstms-gdl.exe
+notes
+cruft
+*.core
+*.log
+*postactivate
