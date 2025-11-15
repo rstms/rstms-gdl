@@ -35,10 +35,10 @@ usage: gdl [flags] URL [OUTPUT_FILE]
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	flag.BoolVar(&verbose, "v", false, "verbose output")
-	flag.StringVar(&ca, "ca", os.Getenv("GDL_CA"), "certificate authority `file` [GDL_CA]")
-	flag.StringVar(&cert, "cert", os.Getenv("GDL_CERT"), "client cert `file` [GDL_CERT]")
-	flag.StringVar(&key, "key", os.Getenv("GDL_KEY"), "client cert key `file` [GDL_KEY]")
+	flag.BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	flag.StringVarP(&ca, "ca", "C", os.Getenv("GDL_CA"), "certificate authority `file` [GDL_CA]")
+	flag.StringVarP(&cert, "cert", "c", os.Getenv("GDL_CERT"), "client cert `file` [GDL_CERT]")
+	flag.StringVarP(&key, "key", "k", os.Getenv("GDL_KEY"), "client cert key `file` [GDL_KEY]")
 	flag.BoolVar(&version, "version", false, "output version")
 	flag.Parse()
 
