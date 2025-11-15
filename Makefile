@@ -61,10 +61,10 @@ clean:
 	rm -rf dist && mkdir dist
 
 sterile: clean
-	go clean -i || true
-	go clean
-	go clean -cache
-	go clean -modcache
+	-[ -e ~/go/bin/$(binary) ] && go clean -i 
+	-go clean
+	-go clean -modcache
+	-go clean -cache
 	rm -f go.mod go.sum
 
 show-vars:

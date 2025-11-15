@@ -1,4 +1,4 @@
-package getfile
+package main
 
 import (
 	"crypto/tls"
@@ -10,8 +10,6 @@ import (
 	"os"
 	"strings"
 )
-
-const Version = "1.0.1"
 
 func GetFile(url, ca, cert, key, outputFilename string, verbose bool) {
 
