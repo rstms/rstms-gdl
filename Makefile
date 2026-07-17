@@ -1,9 +1,21 @@
 # go makefile
 
-program := $(notdir $(shell pwd))
-version := $(shell cat VERSION)
+os_name := $(shell uname -s)
+os_version := $(shell uname -r | tr -d .)
+os_arch := $(shell uname -m)
 
-include make/common.mk
+binary := $(notdir $(shell pwd))
+version := $(shell cat VERSION)
+latest_release = $(shell gh release ls | awk '{print $$1;exit}')
+ports = $(shell boxen ps -n | sed -n '/^port[0-9][0-9]/s/^port//p')
+
+howdy:
+	@echo os_name=$(os_name)
+	@echo os_version=$(os_version)
+	@echo os_arch=$(os_arch)
+	@echo binary=$(binary)
+	@echo latest_release=$(latest_release)
+	@echo ports=$(ports)
 
 default: build
 
@@ -31,13 +43,15 @@ test: fmt
 debug: fmt
 	go test -v -failfast -count=1 -run $(test) . ./...
 
-release:
+release: 
 	$(gitclean)
 	@$(if $(update),gh release delete -y v$(version),)
 	gh release create v$(version) --notes "v$(version)"
 	$(MAKE) build
 
-dist: dist/$(release_binary)
+dist: $(binary)
+	$(foreach p,$(ports),scp gdl.go port$(p):. && ssh port$(p) go build gdl.go && scp port$(p):gdl dist/gdl$(p) && ssh port$(p) rm gdl && ssh port$(p) rm gdl.go;)
+
 
 dist/$(release_binary): $(binary)
 	mkdir -p dist
@@ -47,13 +61,6 @@ dist/$(release_binary): $(binary)
 
 release-upload: dist
 	cd dist; gh release upload $(latest_release) $(release_binary) $(CLOBBER)
-
-update-modules:
-	@echo checking dependencies for updated versions 
-	@$(foreach module,$(rstms_modules),go get $(module)@$(call latest_module_release,$(module)) ;)
-	curl -Lso .proxy https://raw.githubusercontent.com/rstms/go-common/master/proxy_common_go
-	@$(foreach s,$(common_go),sed <.proxy >$(s) 's/^package cmd/package $(lastword $(subst /, ,$(dir $(s))))/' ;)
-	-rm .proxy
 
 clean:
 	rm -f $(binary) *.core 
@@ -66,6 +73,3 @@ sterile: clean
 	-go clean -modcache
 	-go clean -cache
 	rm -f go.mod go.sum
-
-show-vars:
-	@$(foreach var,$(all_variables),echo $(var)=$($(var));)
