@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -ue
+
+url=$1
+release=$(gh release list | awk '{print $1; exit}')
+ports=$(boxen ps -n | grep '^port[0-9][0-9]')
+arch=$(uname -m)
+
+for port in $ports; do
+    major=$(sed <<<$port 's/^port\([0-9]\)[0-9]/\1/')
+    minor=$(sed <<<$port 's/^port[0-9]\([0-9]\)/\1/')
+    path="pub/OpenBSD/${major}.${minor}/bin/${arch}/gdl"
+    echo port=$port path=$path
+    scp gdl.go $port:.
+    ssh $port go build gdl.go
+    scp $port:gdl $port.gdl
+    ssh $port rm gdl.go gdl
+    boxen dist upload $url/$path $port.gdl
+    rm $port.gdl
+done

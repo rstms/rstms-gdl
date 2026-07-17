@@ -1,21 +1,9 @@
 # go makefile
 
-os_name := $(shell uname -s)
-os_version := $(shell uname -r | tr -d .)
-os_arch := $(shell uname -m)
+netboot_url := https://zippy.rstms.net:4443
 
 binary := $(notdir $(shell pwd))
 version := $(shell cat VERSION)
-latest_release = $(shell gh release ls | awk '{print $$1;exit}')
-ports = $(shell boxen ps -n | sed -n '/^port[0-9][0-9]/s/^port//p')
-
-howdy:
-	@echo os_name=$(os_name)
-	@echo os_version=$(os_version)
-	@echo os_arch=$(os_arch)
-	@echo binary=$(binary)
-	@echo latest_release=$(latest_release)
-	@echo ports=$(ports)
 
 default: build
 
@@ -49,18 +37,8 @@ release:
 	gh release create v$(version) --notes "v$(version)"
 	$(MAKE) build
 
-dist: $(binary)
-	$(foreach p,$(ports),scp gdl.go port$(p):. && ssh port$(p) go build gdl.go && scp port$(p):gdl dist/gdl$(p) && ssh port$(p) rm gdl && ssh port$(p) rm gdl.go;)
-
-
-dist/$(release_binary): $(binary)
-	mkdir -p dist
-	scp $< $(dist_target)/$(release_binary)
-	scp $< $(dist_target)/$(dist_binary)
-	cp $< $@
-
-release-upload: dist
-	cd dist; gh release upload $(latest_release) $(release_binary) $(CLOBBER)
+netboot-upload: $(binary)
+	./upload-netboot-binaries https://zippy.rstms.net:4443
 
 clean:
 	rm -f $(binary) *.core 
